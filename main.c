@@ -62,10 +62,6 @@ int main(int argc, char* argv[]) {
     }
 
 
-    // MEMORY INIT
-
-    // CPU INIT
-
     // ROM LOADING
     {
         FILE* rom = fopen(romname, "rb");
