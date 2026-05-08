@@ -357,14 +357,7 @@ uint8_t exec() {
     case LDA_IM: loa(&A, immediate()); break;
     case TAX: loa(&X, &A); break;
     case LDY_ABS: loa(&Y, absolute(0)); break;
-    case LDA_ABS: {
-        uint8_t* val = absolute(0);   
-        loa(&A, val);
-        if ((*at(PC - 2, 0) | (*at(PC - 1, 0) << 8)) == 0xC000) {
-            *val = 0x0;
-        }
-        break;
-    }
+    case LDA_ABS: loa(&A, absolute(0)); break;
     case LDX_ABS: loa(&X, absolute(0)); break;
     case BCS: bch(C); break;
     case LDA_INDY: loa(&A, indir_y(0)); break;
