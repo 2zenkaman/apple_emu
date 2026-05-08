@@ -6,6 +6,9 @@ extern uint8_t TXT[TXTSIZ];
 
 const uint16_t KBD     = 0xC000;
 const uint16_t KBDSTRB = 0xC010;
+const uint16_t TXTCLR  = 0xC050;
+const uint16_t TXTSET  = 0xC051;
+const uint16_t LORES   = 0xC056;
 
 uint8_t* at(uint16_t i, uint8_t waccess) {
     if (i < RAMSIZ) return MEM + i;

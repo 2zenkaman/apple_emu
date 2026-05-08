@@ -12,6 +12,13 @@ extern SDL_Renderer* renderer;
 
 extern SDL_Texture* font[CHARSET];
 
+enum Mode {
+    TEXT,
+    LORES,
+    HIRES,
+    SPLIT,
+};
+
 void renderchar(uint16_t x, uint16_t y, uint8_t c);
 void display();
 

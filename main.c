@@ -15,6 +15,7 @@ const char* const txtname = "./rom/character.bin";
 SDL_Window*   window;
 SDL_Renderer* renderer;
 SDL_Texture* font[CHARSET];
+uint8_t mode = TEXT;
 
 
 uint8_t dump;
@@ -68,14 +69,9 @@ int main(int argc, char* argv[]) {
         fseek(rom, 0L, SEEK_END);
         long romsize = ftell(rom);
         rewind(rom);
-        if (romsize <= 12 KB) {
-            size_t nbytes = fread(MEM + (MEMSIZ - romsize), 1, romsize, rom);
-            fclose(rom);
-        } else {
-            printf("rom is too big");
-            fclose(rom);
-            return 1;
-        }
+        
+        size_t nbytes = fread(MEM + (MEMSIZ - romsize), 1, romsize, rom);
+        fclose(rom);
     }
 
 
