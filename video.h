@@ -5,21 +5,18 @@
 
 #include <SDL2/SDL.h>
 
-#define CHARSET 64
-
 extern SDL_Window*   window;
 extern SDL_Renderer* renderer;
 
-extern SDL_Texture* font[CHARSET];
+extern SDL_Texture* textt[64];
+extern SDL_Texture* lorest[16];
 
 enum Mode {
-    TEXT,
-    LORES,
-    HIRES,
-    SPLIT,
+    text,
+    lores,
+    hires,
 };
 
-void renderchar(uint16_t x, uint16_t y, uint8_t c);
 void display();
 
 #endif

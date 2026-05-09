@@ -5,6 +5,9 @@
 extern uint8_t MEM[MEMSIZ];
 extern uint8_t factor;
 
+extern uint8_t mode;
+extern uint8_t mixset;
+
 // routine borrowed from original autostart rom
 uint16_t bascalc(uint8_t A) {
                 uint8_t bas[2];
@@ -26,17 +29,36 @@ uint16_t bascalc(uint8_t A) {
                 return *(uint16_t*)bas; // rts
 }
 
-void renderchar(uint16_t x, uint16_t y, uint8_t c) {
+void renderchar(uint16_t x, uint16_t y) {
+    uint16_t basaddr = bascalc(y) + x;
+
+    uint8_t c = *at(basaddr, 0) & 0x7f;
     if (c < 32 || c > 95) return;
 
     SDL_Rect cell;
     cell.w = 7 * factor;
     cell.h = 8 * factor;
-    cell.x = x * 7 * factor;
-    cell.y = y * 8 * factor;
+    cell.x = x * cell.w;
+    cell.y = y * cell.h;
 
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderCopy(renderer, font[c-32], NULL, &cell);
+    SDL_RenderCopy(renderer, textt[c-32], NULL, &cell);
+}
+
+void renderlores(uint16_t x, uint16_t y) {
+    uint16_t basaddr = bascalc(y) + x;
+
+    uint8_t colordata = *at(basaddr, 0);
+
+    SDL_Rect cell;
+    cell.w = 7 * factor;
+    cell.h = 4 * factor;
+    cell.x = x * cell.w;
+    cell.y = y * cell.h * 2;
+
+    SDL_RenderCopy(renderer, lorest[colordata & 0x0f], NULL, &cell);
+
+    cell.y += cell.h;
+    SDL_RenderCopy(renderer, lorest[colordata >> 4], NULL, &cell);
 }
 
 void display() {
@@ -44,10 +66,20 @@ void display() {
     SDL_RenderClear(renderer);
 
     for (size_t y = 0; y < 24; y++) {
-        uint16_t bas = bascalc(y);
         for (size_t x = 0; x < 40; x++) {
-            char curr = MEM[bas + x] & 0x7F; // ASCII
-            renderchar(x, y, curr);
+            if (mixset && y > 19) {
+                renderchar(x, y);
+                continue;
+            }
+
+            switch (mode) {
+            case lores:
+                renderlores(x, y);
+                break;
+            case text:
+                renderchar(x, y);
+                break;
+            }
         }
     }
 

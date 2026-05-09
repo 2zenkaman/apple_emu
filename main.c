@@ -14,8 +14,10 @@ const char* const txtname = "./rom/character.bin";
 
 SDL_Window*   window;
 SDL_Renderer* renderer;
-SDL_Texture* font[CHARSET];
-uint8_t mode = TEXT;
+SDL_Texture* textt[64];
+SDL_Texture* lorest[16];
+uint8_t mode = text;
+uint8_t mixset = 0;
 
 
 uint8_t dump;
@@ -39,7 +41,7 @@ uint8_t V = 0;
 uint8_t N = 0;
 
 
-const uint8_t factor = 4;
+const uint8_t factor = 1;
 
 
 int main(int argc, char* argv[]) {
@@ -86,7 +88,7 @@ int main(int argc, char* argv[]) {
         
         SDL_Surface* c = SDL_CreateRGBSurface(0, 7, 8, 32, 0, 0, 0, 0);
         
-        for (uint8_t i = 0; i < CHARSET; i++) {
+        for (uint8_t i = 0; i < 64; i++) {
             uint8_t* chardata = TXT + i*8; // 8 bytes per char
             if (i / 32 == 0) {
                 chardata += 256;
@@ -107,8 +109,23 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            font[i] = SDL_CreateTextureFromSurface(renderer, c);
+            textt[i] = SDL_CreateTextureFromSurface(renderer, c);
         }
+
+        SDL_FreeSurface(c);
+    }
+
+    // LORES COLOR TEXTURES
+    {
+        SDL_Surface* s = SDL_CreateRGBSurface(0, 7, 4, 32, 0, 0, 0, 0);
+
+        uint32_t colors[16] = {SDL_MapRGB(s->format, 0x00, 0x00, 0x00), SDL_MapRGB(s->format, 0xB0, 0x02, 0x58), SDL_MapRGB(s->format, 0x1E, 0x2B, 0xFF), SDL_MapRGB(s->format, 0xCE, 0x2D, 0xFF), SDL_MapRGB(s->format, 0x00, 0x7E, 0x28), SDL_MapRGB(s->format, 0x80, 0x80, 0x80), SDL_MapRGB(s->format, 0x00, 0xA9, 0xFF), SDL_MapRGB(s->format, 0x9E, 0xAB, 0xFF), SDL_MapRGB(s->format, 0x61, 0x54, 0x00), SDL_MapRGB(s->format, 0xFF, 0x65, 0x00), SDL_MapRGB(s->format, 0x80, 0x80, 0x80), SDL_MapRGB(s->format, 0xFF, 0x81, 0xD7), SDL_MapRGB(s->format, 0x31, 0xD2, 0x00), SDL_MapRGB(s->format, 0xE1, 0xD4, 0x00), SDL_MapRGB(s->format, 0x4F, 0xFD, 0xA7), SDL_MapRGB(s->format, 0xFF, 0xFF, 0xFF)};
+
+        for (uint8_t i = 0; i < 16; i++) {
+            SDL_FillRect(s, NULL, colors[i]);
+            lorest[i] = SDL_CreateTextureFromSurface(renderer, s);
+        }
+        SDL_FreeSurface(s);
     }
 
 
@@ -128,18 +145,18 @@ int main(int argc, char* argv[]) {
                 break;
             case SDL_KEYDOWN:
                 *at(0xC000, 1) = (char)e.key.keysym.sym ^ 0x80;
-                // if (e.key.keysym.sym == SDLK_4) {
-                //     int fd = open("dump.bin", O_WRONLY);
-                //     write(fd, mem.ram, 12 * 1024);
-                //     close(fd);
-                // }
+                if (e.key.keysym.sym == SDLK_4) {
+                    FILE* fd = fopen("dump.bin", "wb");
+                    fwrite(MEM, 12, 1024, fd);
+                    fclose(fd);
+                }
                 break;
             default:
                 break;
             }
         }
 
-        for (size_t i = 0; i < 100000; i++) {
+        for (size_t i = 0; i < 1000000; i++) {
             exec();
         }
 
