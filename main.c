@@ -40,8 +40,7 @@ uint8_t B = 0;
 uint8_t V = 0;
 uint8_t N = 0;
 
-
-uint8_t* floppy;
+uint8_t floppy[40][16][256] = {0};
 size_t floppysize;
 uint8_t spinning = 0;
 
@@ -129,9 +128,13 @@ int main(int argc, char* argv[]) {
         floppysize = ftell(flptr);
         rewind(flptr);
 
-        fread(floppy, floppysize, 1, flptr);
+        for (uint8_t t = 0; t < 40; t++) {
+            for (uint8_t s = 0; s < 16; s++) {
+                fread(floppy[t][s], 256, 1, flptr);
+            }
+        }
+        
         fclose(flptr);
-        printf("hot fat floppy landed. he is %lld lbs\n", floppysize);
     }
 
 
