@@ -41,10 +41,16 @@ uint8_t V = 0;
 uint8_t N = 0;
 
 
-const uint8_t factor = 1;
+uint8_t* floppy;
+size_t floppysize;
+uint8_t spinning = 0;
+
+
+const uint8_t factor = 3;
 
 
 int main(int argc, char* argv[]) {
+    if (argc != 2) return 1; 
 
     // SDL INIT
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -114,6 +120,27 @@ int main(int argc, char* argv[]) {
 
         SDL_FreeSurface(c);
     }
+
+
+    // FLOPPY
+    {
+        FILE* flptr = fopen(argv[1], "rb");
+        fseek(flptr, 0L, SEEK_END);
+        floppysize = ftell(flptr);
+        rewind(flptr);
+
+        fread(floppy, floppysize, 1, flptr);
+        fclose(flptr);
+        printf("hot fat floppy landed. he is %lld lbs\n", floppysize);
+    }
+
+
+    {
+        FILE* BOOT0 = fopen("rom/C600ROM", "r");
+        fread(MEM + 0xC600, 1, 256, BOOT0);
+        fclose(BOOT0);
+    }
+
 
     // LORES COLOR TEXTURES
     {
