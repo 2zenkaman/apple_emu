@@ -8,9 +8,8 @@
 #include "cpu.h"
 #include "video.h"
 
-const char* const romname = "./rom/rom.bin";
-const char* const txtname = "./rom/character.bin";
-
+const char* romname = "./rom.bin";
+const char* txtname = "./character.bin";
 
 SDL_Window*   window;
 SDL_Renderer* renderer;
@@ -40,16 +39,16 @@ uint8_t B = 0;
 uint8_t V = 0;
 uint8_t N = 0;
 
-uint8_t floppy[40][16][256] = {0};
-size_t floppysize;
-uint8_t spinning = 0;
+uint8_t floppy[40][16][400] = {0};
+int8_t track = 0;
+uint16_t flptr = 0;
 
 
 const uint8_t factor = 3;
 
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) return 1; 
+    // if (argc != 2) return 1; 
 
     // SDL INIT
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -69,10 +68,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-
     // ROM LOADING
     {
         FILE* rom = fopen(romname, "rb");
+        if (!rom) {
+            perror("file could not open");
+            return 1;
+        }
+
         fseek(rom, 0L, SEEK_END);
         long romsize = ftell(rom);
         rewind(rom);
@@ -85,6 +88,11 @@ int main(int argc, char* argv[]) {
     // TEXT ROM LOADING
     {
         FILE* rom = fopen(txtname, "rb");
+        if (!rom) {
+            perror("file could not open");
+            return 1;
+        }
+
         fread(TXT, 2 KB, 1, rom);
         fclose(rom);
 
@@ -122,27 +130,26 @@ int main(int argc, char* argv[]) {
 
 
     // FLOPPY
-    {
-        FILE* flptr = fopen(argv[1], "rb");
-        fseek(flptr, 0L, SEEK_END);
-        floppysize = ftell(flptr);
-        rewind(flptr);
+    // {
+    //     FILE* fptr = fopen(argv[1], "rb");
+    //     fseek(fptr, 0L, SEEK_END);
+    //     rewind(fptr);
 
-        for (uint8_t t = 0; t < 40; t++) {
-            for (uint8_t s = 0; s < 16; s++) {
-                fread(floppy[t][s], 256, 1, flptr);
-            }
-        }
+    //     for (uint8_t t = 0; t < 40; t++) {
+    //         for (uint8_t s = 0; s < 16; s++) {
+    //             fread(floppy[t][s], 400, 1, fptr);
+    //         }
+    //     }
         
-        fclose(flptr);
-    }
+    //     fclose(fptr);
+    // }
 
 
-    {
-        FILE* BOOT0 = fopen("rom/C600ROM", "r");
-        fread(MEM + 0xC600, 1, 256, BOOT0);
-        fclose(BOOT0);
-    }
+    // {
+    //     FILE* BOOT0 = fopen("rom/C600ROM", "r");
+    //     fread(MEM + 0xC600, 1, 256, BOOT0);
+    //     fclose(BOOT0);
+    // }
 
 
     // LORES COLOR TEXTURES
@@ -162,24 +169,18 @@ int main(int argc, char* argv[]) {
     printf("MPU is reset to %X\n", reset());
 
     uint8_t running = 1;
+
     SDL_Event e;
     while (running) {
         while (SDL_PollEvent(&e)) {
-            switch (e.type)
-            {
+            switch (e.type) {
             case SDL_QUIT:
-                return 0;
+                running = 0;
             case SDL_TEXTINPUT:
-                printf("%c\n", (char)e.text.text[0]);
                 *at(0xC000, 1) = (char)e.text.text[0] ^ 0x80;
                 break;
             case SDL_KEYDOWN:
                 *at(0xC000, 1) = (char)e.key.keysym.sym ^ 0x80;
-                if (e.key.keysym.sym == SDLK_4) {
-                    FILE* fd = fopen("dump.bin", "wb");
-                    fwrite(MEM, 12, 1024, fd);
-                    fclose(fd);
-                }
                 break;
             default:
                 break;
@@ -192,4 +193,6 @@ int main(int argc, char* argv[]) {
 
         display();
     }
+
+    return 0;
 }
